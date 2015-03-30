@@ -1,0 +1,315 @@
+# make rules
+ifneq ($(CSRCS),)
+  OBJS += $(addprefix $(OUTDIR)/, $(CSRCS:.c=$(OBJ_SUFFIX)))
+endif
+
+ifneq ($(CPPSRCS),)
+  OBJS += $(addprefix $(OUTDIR)/, $(CPPSRCS:.cc=$(OBJ_SUFFIX)))
+endif 
+
+# Platform specific rules
+ifeq ($(PLATFORM), __WINDOWS__)
+  DEPEND_FLAGS = $(filter-out -I"", -I"$(subst ;," -I",$(Include)$(INCLUDE))")
+  DEPEND_FLAGS += -D_WIN32
+  ifeq ($(BUILD_64),1)
+    DEPEND_FLAGS += -D_M_IX64 -D_WIN64 -D_AMD64_ -D_M_AMD64
+  else
+    DEPEND_FLAGS += -D_M_IX86=600 -D_M_IX86_FP=0
+  endif
+endif
+
+ifneq ($(CPPSRCS),)
+  LINKER = $(CXXLINKER)
+endif
+
+ifneq ($(SOTARGET),)
+  ifeq ($(THE_OS), windows)
+    SO_TARGET_PATH = $(addprefix $(BINDIR)/, $(DLL_PREFIX)$(SOTARGET)$(DLL_SUFFIX))
+    IMPLIB_PATH = $(addprefix $(LIBDIR)/, $(DLL_PREFIX)$(SOTARGET).lib)
+    MAKE_DIRS += $(BINDIR)
+  else
+    SO_TARGET_PATH = $(addprefix $(LIBDIR)/, $(DLL_PREFIX)$(SOTARGET)$(DLL_SUFFIX))
+    MAKE_DIRS += $(LIBDIR)
+  endif
+endif
+
+ifneq ($(EXETARGET),)
+  EXE_TARGET_PATH = $(addprefix $(BINDIR)/, $(addsuffix $(EXE_SUFFIX), $(EXETARGET)))
+endif
+
+# Local exe (e.g. for testing) is put on local directory
+ifneq ($(LEXETARGET),)
+  LEXE_TARGET_PATH = $(addsuffix $(EXE_SUFFIX), $(LEXETARGET))
+endif
+
+# Local dll (e.g. for testing) is put on local directory
+ifneq ($(LSOTARGET),)
+  LSO_TARGET_PATH = $(DLL_PREFIX)$(LSOTARGET)$(DLL_SUFFIX)
+endif
+
+ifneq ($(LIB_NAME),)
+  ifeq ($(THE_OS), windows)
+    OBJLIB = $(addprefix $(LIBDIR)/, $(LIB_PREFIX)$(LIB_NAME)_s$(LIB_SUFFIX))
+    OBJLIB_PDB = $(LIBDIR)/$(LIB_NAME)_s.pdb
+  else
+    OBJLIB = $(addprefix $(LIBDIR)/, $(LIB_PREFIX)$(LIB_NAME)$(LIB_SUFFIX))
+  endif
+endif
+
+# Copy prebuilt libraries to lib directory
+ifneq ($(PREBUILT_LIB32),)
+  ifneq ($(BUILD_64), 1)
+    MAKE_DIRS+=$(LIBDIR)
+    PREBUILT_LIB32_TARGET = $(addprefix $(LIBDIR)/, $(PREBUILT_LIB32))
+  endif
+endif
+
+ifneq ($(PREBUILT_LIB64),)
+  ifeq ($(BUILD_64), 1)
+    MAKE_DIRS+=$(LIBDIR)
+    PREBUILT_LIB64_TARGET = $(addprefix $(LIBDIR)/, $(PREBUILT_LIB64))
+  endif
+endif
+
+# Copy prebuilt binary to bin directory
+ifneq ($(PREBUILT_BIN32),)
+  ifneq ($(BUILD_64), 1)
+    MAKE_DIRS+=$(BINDIR)
+    PREBUILT_BIN32_TARGET = $(addprefix $(BINDIR)/, $(PREBUILT_BIN32))
+  endif
+endif
+
+ifneq ($(PREBUILT_BIN64),)
+  ifeq ($(BUILD_64), 1)
+    MAKE_DIRS+=$(BINDIR)
+    PREBUILT_BIN64_TARGET = $(addprefix $(BINDIR)/, $(PREBUILT_BIN64))
+  endif
+endif
+
+# Copy include directory
+ifneq ($(COPY_INCLUDE_TARGET_DIR),)
+  MAKE_DIRS+=$(COPY_INCLUDE_TARGET_DIR)
+  COPY_INCLUDE_TARGET = $(addprefix $(COPY_INCLUDE_TARGET_DIR)/, $(INCLUDE_FILES))
+endif
+
+ifneq ($(OBJS),)
+  MAKE_DIRS += $(OUTDIR)
+endif
+
+ifneq ($(EXE_TARGET_PATH),)
+  MAKE_DIRS += $(BINDIR)
+endif
+
+ifneq ($(SO_TARGET_PATH),)
+  MAKE_DIRS += $(LIBDIR)
+else
+  ifneq ($(OBJLIB),)
+    MAKE_DIRS += $(LIBDIR)
+  endif
+endif
+
+# Building everything (Main entry)
+.PHONY: all
+all: $(MAKE_DIRS) $(PRE_BUILD) \
+     $(PREBUILT_LIB32_TARGET) $(PREBUILT_LIB64_TARGET) \
+     $(PREBUILT_BIN32_TARGET) $(PREBUILT_BIN64_TARGET) \
+     $(PRE_SUBDIRS) $(COPY_INCLUDE_TARGET) $(INSTRUMENT_HEADERS) \
+		 $(OBJLIB) $(SO_TARGET_PATH) $(PLUGIN_TARGET_PATH) $(EXE_TARGET_PATH) \
+     $(LEXE_TARGET_PATH) $(LSO_TARGET_PATH) \
+     $(POST_BUILD) $(RUNTESTS) $(SUBDIRS)
+
+$(MAKE_DIRS):
+	mkdir -p $@
+
+.PHONY: $(SUBDIRS) $(PRE_SUBDIRS)
+$(SUBDIRS) $(PRE_SUBDIRS):
+	$(MAKE) -C $@
+
+$(PREBUILT_LIB32_TARGET) : $(LIBDIR)/% : %
+	$(COPY) $< $@
+
+$(PREBUILT_LIB64_TARGET) : $(LIBDIR)/% : %
+	$(COPY) $< $@
+
+$(PREBUILT_BIN32_TARGET) : $(BINDIR)/% : %
+	$(COPY) $< $@
+
+$(PREBUILT_BIN64_TARGET) : $(BINDIR)/% : %
+	$(COPY) $< $@
+
+$(COPY_INCLUDE_TARGET) : $(COPY_INCLUDE_TARGET_DIR)/% : %
+	$(COPY) $< $@
+
+# dependencies
+DEPENDS = $(wildcard $(OUTDIR)/*.d)
+ifneq ($(DEPENDS),)
+  include $(DEPENDS)
+endif
+
+# Setting C/C++ arguments
+CPPFLAGS += $(addprefix $(COMP_INCLUDEPATH_FLAG), $(INCLUDE_DIRS))
+LDFLAGS += $(addprefix $(LINK_LIBPATH_FLAG), $(LIBRARY_DIRS))
+
+ifeq ($(THE_OS), linux)
+  LINK_RUNPATH_FLAG =-Wl,-rpath-link,
+  LDFLAGS += $(addprefix $(LINK_RUNPATH_FLAG), $(LIBRARY_DIRS))
+endif
+
+ifeq ($(THE_OS), windows)
+  LDLIBS += $(addsuffix $(LIB_SUFFIX), $(DEPLIBS))
+else
+  LDLIBS += $(addprefix $(LINK_LIB_FLAG), $(DEPLIBS))
+endif
+
+# c compilation
+$(OUTDIR)/%$(OBJ_SUFFIX): %.c
+ifeq ($(THE_OS), windows)
+ifneq ($(OBJLIB_PDB),)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(COMP_OUTPUT_FLAG)$@ /Fd$(OBJLIB_PDB) $<
+else
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+	@echo ==== makedepend $(patsubst %$(OBJ_SUFFIX),%.d,$@)
+	@cp $(BUILD_DIR)/makedepend_template $(patsubst %$(OBJ_SUFFIX),%.d, $@)
+	@makedepend -o$(OBJ_SUFFIX) -p$(OUTDIR)/ -f$(patsubst %$(OBJ_SUFFIX),%.d, $@) -- $(subst $(null) /, -,$(CPPFLAGS) $(CFLAGS)) $(DEPEND_FLAGS) -- $(patsubst $(OUTDIR)/%$(OBJ_SUFFIX), %.c, $@)
+else
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+
+# cpp compilation
+$(OUTDIR)/%$(OBJ_SUFFIX): %.cc
+ifeq ($(THE_OS), windows)
+ifneq ($(OBJLIB_PDB),)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ /Fd$(OBJLIB_PDB) $<
+else
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+	@echo ==== makedepend $(patsubst %$(OBJ_SUFFIX),%.d,$@)
+	@cp $(BUILD_DIR)/makedepend_template $(patsubst %$(OBJ_SUFFIX),%.d, $@)
+	@makedepend -o$(OBJ_SUFFIX) -p$(OUTDIR)/ -f$(patsubst %$(OBJ_SUFFIX),%.d, $@) -- $(subst $(null) /, -,$(CPPFLAGS) $(CXXFLAGS)) $(DEPEND_FLAGS) -D__cplusplus -- $(patsubst $(OUTDIR)/%$(OBJ_SUFFIX), %.cc, $@) > nul 2>&1
+	@mv $(patsubst %$(OBJ_SUFFIX),%.d, $@).tmp $(patsubst %$(OBJ_SUFFIX),%.d, $@) 
+else
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+
+$(OUTDIR)/%$(OBJ_SUFFIX): %.cpp
+ifeq ($(THE_OS), windows)
+ifneq ($(OBJLIB_PDB),)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ /Fd$(OBJLIB_PDB) $<
+else
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+	@echo ==== makedepend $(patsubst %$(OBJ_SUFFIX),%.d,$@)
+	@cp $(BUILD_DIR)/makedepend_template $(patsubst %$(OBJ_SUFFIX),%.d, $@)
+	@makedepend -o$(OBJ_SUFFIX) -p$(OUTDIR)/ -f$(patsubst %$(OBJ_SUFFIX),%.d, $@) -- $(subst $(null) /, -,$(CPPFLAGS) $(CXXFLAGS)) $(DEPEND_FLAGS) -D__cplusplus -- $(patsubst $(OUTDIR)/%$(OBJ_SUFFIX), %.cpp, $@) > nul 2>&1
+	@mv $(patsubst %$(OBJ_SUFFIX),%.d, $@).tmp $(patsubst %$(OBJ_SUFFIX),%.d, $@) 
+else
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+endif
+
+# .so linking
+$(SO_TARGET_PATH): $(OBJS)
+ifeq ($(THE_OS), windows)
+	$(LINKER) $(DLL_LINK_OPTS) $(LDFLAGS) $(OBJS) $(LDLIBS) $(LINK_OUTPUT_FLAG)$@ /IMPLIB:$(IMPLIB_PATH)
+	rem mt.exe -nologo -manifest $@.manifest -outputresource:$@
+else
+	$(LINKER) $(DLL_LINK_OPTS) $(LDFLAGS) $(OBJS) $(LDLIBS) $(LINK_OUTPUT_FLAG)$@
+endif
+ifeq ($(THE_OS), darwin)
+	dsymutil $@
+endif
+ifeq ($(THE_OS), ios)
+	dsymutil $@
+endif
+ifeq ($(PLATFORM), linux)
+	objcopy --only-keep-debug $@ $@.dbg
+	strip $@
+	objcopy --add-gnu-debuglink=$@.dbg $@
+endif
+
+# .a archiving
+$(OBJLIB): $(OBJS)
+	@rm -rf $@
+	$(AR) $(ARFLAGS)$@ $(OBJS)
+ifneq ($(RANLIB),)
+	TMPDIR=. $(RANLIB) $@
+endif
+
+$(EXE_TARGET_PATH): $(BINDIR)/%$(EXE_SUFFIX) : $(OUTDIR)/%$(OBJ_SUFFIX)
+	$(LINKER) $(LDFLAGS) $^ $(LDLIBS) $(LINK_OUTPUT_FLAG)$@
+ifeq ($(THE_OS), windows)
+	rem mt.exe -nologo -manifest $@.manifest -outputresource:$@
+endif
+ifeq ($(THE_OS), darwin)
+	dsymutil $@
+endif
+ifeq ($(THE_OS), ios)
+	dsymutil $@
+endif
+ifeq ($(THE_OS), linux)
+	objcopy --only-keep-debug $@ $@.dbg
+	strip $@
+	objcopy --add-gnu-debuglink=$@.dbg $@
+endif
+
+$(LEXE_TARGET_PATH): %$(EXE_SUFFIX) : $(OUTDIR)/%$(OBJ_SUFFIX)
+	$(LINKER) $(LDFLAGS) $^ $(LDLIBS) $(LINK_OUTPUT_FLAG)$@
+ifeq ($(THE_OS), windows)
+	rem mt.exe -nologo -manifest $@.manifest -outputresource:$@
+endif
+ifeq ($(THE_OS), darwin)
+	dsymutil $@
+endif
+
+$(LSO_TARGET_PATH): $(OBJS)
+	$(LINKER) $(DLL_LINK_OPTS) $(LDFLAGS) $^ $(LDLIBS) $(LINK_OUTPUT_FLAG)$@
+ifeq ($(THE_OS), darwin)
+	dsymutil $@
+endif
+
+ifeq ($(THE_OS), windows)
+  JUNK_FILES = vc*.idb vc*.pdb
+  ifneq ($(SO_TARGET_PATH), )
+    JUNK_FILES += $(SO_TARGET_PATH:.dll=.exp) $(SO_TARGET_PATH:.dll=.map) $(SO_TARGET_PATH:.dll=.lib) $(SO_TARGET_PATH:.dll=.pdb)
+  endif
+
+  ifneq ($(LSO_TARGET_PATH), )
+    JUNK_FILES += $(LSO_TARGET_PATH:.dll=.exp) $(LSO_TARGET_PATH:.dll=.map) $(LSO_TARGET_PATH:.dll=.lib) $(LSO_TARGET_PATH:.dll=.pdb)
+  endif
+
+  ifneq ($(EXE_TARGET_PATH), )
+    JUNK_FILES += $(patsubst %.exe, %.suo, $(EXE_TARGET_PATH))
+    JUNK_FILES += $(patsubst %.exe, %.pdb, $(EXE_TARGET_PATH))
+    JUNK_FILES += $(patsubst %.exe, %.map, $(EXE_TARGET_PATH))
+  endif
+
+  ifneq ($(LEXE_TARGET_PATH), )
+    JUNK_FILES += $(patsubst %.exe, %.suo, $(LEXE_TARGET_PATH))
+    JUNK_FILES += $(patsubst %.exe, %.pdb, $(LEXE_TARGET_PATH))
+    JUNK_FILES += $(patsubst %.exe, %.map, $(LEXE_TARGET_PATH))
+  endif
+endif
+
+ifeq ($(THE_OS), darwin)
+  JUNK_FILES += $(addsuffix .dSYM, $(EXE_TARGET_PATH) $(LEXE_TARGET_PATH) $(SO_TARGET_PATH) $(LSO_TARGET_PATH))
+endif
+
+.PHONY:clean
+clean:
+	rm -rf $(OBJS) $(OBJLIB) $(SO_TARGET_PATH) $(EXE_TARGET_PATH) $(LEXE_TARGET_PATH) $(LSO_TARGET_PATH) $(COPY_INCLUDE_TARGET) $(DEPENDS) $(JUNK_FILES)
+ifneq ($(findstring $(OUTDIR), $(MAKE_DIRS)), )
+  ifneq ($(OUTDIR_CLEAN),.)
+	rm -rf $(OUTDIR_CLEAN)
+  endif
+endif
+
+CLEAN_PRE_SUBDIRS = $(addprefix clean-, $(PRE_SUBDIRS))
+CLEAN_SUBDIRS = $(addprefix clean-, $(SUBDIRS))
+.PHONY:clean-all $(CLEAN_SUBDIRS) $(CLEAN_PRE_SUBDIRS)
+clean-all: $(CLEAN_PRE_SUBDIRS) clean $(CLEAN_SUBDIRS)
+
+$(CLEAN_PRE_SUBDIRS):
+	$(MAKE) clean-all -C $(patsubst clean-%, %, $@)
+
+$(CLEAN_SUBDIRS):
+	$(MAKE) clean-all -C $(patsubst clean-%, %, $@)

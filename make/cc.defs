@@ -1,0 +1,23 @@
+CPPFLAGS += -D$(PLATFORM)
+
+INCLUDE_DIRS += .
+
+ifeq ($(USE_CLANG), 1)
+include $(BUILD_DIR)/clang.defs
+else ifeq ($(USE_CL), 1)
+include $(BUILD_DIR)/cl.defs
+else
+include $(BUILD_DIR)/gcc.defs
+endif
+
+CPPFLAGS += $(addprefix $(COMP_INCLUDEPATH_FLAG), $(INCLUDE_DIRS))
+
+ifeq ($(BUILD_TYPE), debug)
+  CPPFLAGS += -D_DEBUG
+  CFLAGS += $(COMP_DEBUG_FLAGS)
+  CXXFLAGS += $(COMP_DEBUG_FLAGS)
+else
+  CFLAGS += $(COMP_OPTIMIZE_FLAGS)
+  CXXFLAGS += $(COMP_OPTIMIZE_FLAGS)
+endif
+

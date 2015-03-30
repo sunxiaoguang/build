@@ -1,0 +1,42 @@
+CC = cl.exe
+CXX = cl.exe
+AR = lib.exe
+LINKER = link.exe
+CXXLINKER = link.exe
+RANLIB = 
+ARFLAGS = /NOLOGO /OUT:
+
+
+CPPFLAGS += -I.
+
+CFLAGS += -nologo /c /W3 /TC /wd4996 /wd4018 /WX
+CXXFLAGS += -nologo /c /W3 /TP /wd4996 /wd4018 /wd4251 /wd4250 /wd4503 /WX /EHa
+
+COMP_OPTIMIZE_FLAGS = /MD /O2 -D NDEBUG /Zi
+COMP_DEBUG_FLAGS = /MDd /Od /RTC1 -D _DEBUG /Zi
+
+ifeq ($(CLR_ENABLED), 1)
+  CFLAGS += /clr
+  CXXFLAGS += /clr
+else
+  COMP_DEBUG_FLAGS += /RTC1
+endif
+
+COMP_OUTPUT_FLAG = /Fo
+COMP_INCLUDEPATH_FLAG = -I
+
+LINK_OUTPUT_FLAG = /OUT:
+LINK_LIBPATH_FLAG = /LIBPATH:
+LINK_LIB_FLAG = 
+
+LDFLAGS += /nologo /DEBUG /MAP /OPT:REF /OPT:ICF
+DEPLIBS += advapi32 ws2_32 iphlpapi rpcrt4 user32
+
+LDFLAGS_OPTIMIZE = /LTCG 
+
+ifeq ($(BUILD_64),1)
+  LDFLAGS += /MACHINE:X64
+else
+  COMP_OPTIMIZE_FLAGS += /GL
+  LDFLAGS += /MACHINE:X86
+endif

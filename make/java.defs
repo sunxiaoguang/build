@@ -1,0 +1,10 @@
+ifeq ($(JAVA_HOME),)
+  ifeq ($(THE_OS), linux)
+    export JAVA_HOME = /usr/lib/jvm/java-6-sun
+  endif
+  ifeq ($(THE_OS), darwin)
+    export JAVA_HOME = /Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home
+  endif
+endif
+
+INCLUDE_DIRS += $(JAVA_HOME)/include $(JAVA_HOME)/include/$(THE_OS)

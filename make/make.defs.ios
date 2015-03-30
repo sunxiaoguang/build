@@ -1,0 +1,19 @@
+PLATFORM = __IOS__
+
+include $(BUILD_DIR)/make.defs.unix
+
+DLL_SUFFIX = dylib
+
+DLL_LINK_OPTS = -dynamiclib
+DLL_LIBRARY_PATH = DYLD_LIBRARY_PATH
+
+IOS_ARCH_FLAGS = -arch armv6 -arch armv7 -arch armv7s
+IOS_ROOT_FLAGS = -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
+IOS_VERSION_FLAGS = -miphoneos-version-min=8
+
+CFLAGS += $(IOS_ARCH_FLAGS) $(IOS_ROOT_FLAGS) $(IOS_VERSION_FLAGS)
+CXXFLAGS += $(IOS_ARCH_FLAGS) $(IOS_ROOT_FLAGS) $(IOS_VERSION_FLAGS)
+
+USE_CLANG = 1
+NO_JNI = 1
+THE_ARCH = arm

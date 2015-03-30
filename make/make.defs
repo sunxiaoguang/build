@@ -1,0 +1,54 @@
+THE_OS ?= $(shell uname | tr '[:upper:]' '[:lower:]')
+THE_ARCH = $(shell uname -m)
+
+ifeq ($(BUILD_64), 0)
+  ifeq ($(THE_ARCH), i686)
+    THE_ARCH = i386
+  endif
+  ifeq ($(THE_ARCH), i586)
+    THE_ARCH = i386
+  endif
+  ifeq ($(THE_ARCH), x86)
+    THE_ARCH = i386
+  endif
+  ifeq ($(THE_ARCH), x86_64)
+    THE_ARCH = i386
+  endif
+else
+  ifeq ($(THE_ARCH), i686)
+    THE_ARCH = amd64
+  endif
+  ifeq ($(THE_ARCH), i586)
+    THE_ARCH = amd64
+  endif
+  ifeq ($(THE_ARCH), x86)
+    THE_ARCH = amd64
+  endif
+  ifeq ($(THE_ARCH), x86_64)
+    THE_ARCH = amd64
+  endif
+endif
+
+BUILD_PLATFORM = $(THE_OS).$(THE_ARCH)
+ifeq ($(BUILD_DEBUG), 1)
+  BUILD_TYPE = debug
+else
+  BUILD_TYPE = release
+endif
+
+include $(BUILD_DIR)/make.defs.$(THE_OS)
+-include $(PROJECT_HOME)/make.defs $(PROJECT_HOME)/make.defs.$(THE_OS)
+
+ifeq ($(TARGET_DIR), )
+  TARGET_DIR = $(PROJECT_HOME)/output/$(BUILD_PLATFORM).$(BUILD_TYPE)
+endif
+
+OUTDIR = obj/$(BUILD_PLATFORM).$(BUILD_TYPE)
+OUTDIR_CLEAN = obj
+BINDIR = $(TARGET_DIR)/bin
+LIBDIR = $(TARGET_DIR)/lib
+
+LIBRARY_DIRS += $(LIBDIR)
+
+include $(BUILD_DIR)/java.defs
+include $(BUILD_DIR)/cc.defs

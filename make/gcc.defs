@@ -1,0 +1,20 @@
+CC = gcc
+CXX = g++
+LINKER = gcc
+CXXLINKER = g++
+
+CPPFLAGS += -MD
+
+CFLAGS += -g -Wall -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wcast-align -Wbad-function-cast -Winline -Wnested-externs -Wredundant-decls -pipe
+CXXFLAGS += -g -Wall -Werror -pipe
+
+COMP_OPTIMIZE_FLAGS = -O3
+
+COMP_OUTPUT_FLAG = -o 
+COMP_INCLUDEPATH_FLAG = -I
+
+LINK_OUTPUT_FLAG = -o 
+LINK_LIBPATH_FLAG = -L
+LINK_LIB_FLAG = -l
+
+ARFLAGS = rv 

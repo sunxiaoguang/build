@@ -1,0 +1,15 @@
+PLATFORM = __LINUX__
+
+include $(BUILD_DIR)/make.defs.unix
+
+DLL_LINK_OPTS = -shared -Wl,-soname,$(notdir $(SO_TARGET_PATH)) -Wl,-z,defs
+DLL_LIBRARY_PATH = LD_LIBRARY_PATH
+
+CPPFLAGS += -D_GNU_SOURCE -pthread -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+CFLAGS += -fPIC -fno-stack-protector
+CXXFLAGS += -fPIC -Wno-deprecated -fno-stack-protector
+
+LDFLAGS += -pthread -Wl,-Bsymbolic
+DEPLIBS += m
+
+USE_CLANG = 0
