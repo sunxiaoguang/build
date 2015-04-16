@@ -5,8 +5,8 @@ CXXLINKER = g++
 
 CPPFLAGS += -MD
 
-CFLAGS += -g -Wall -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wcast-align -Wbad-function-cast -Winline -Wnested-externs -Wredundant-decls -pipe
-CXXFLAGS += -g -Wall -Werror -pipe
+CFLAGS += -g -Wall -Werror -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wcast-align -Wbad-function-cast -Winline -Wnested-externs -Wredundant-decls -pipe -c
+CXXFLAGS += -g -Wall -Werror -pipe -c
 
 COMP_OPTIMIZE_FLAGS = -O3
 
