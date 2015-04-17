@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project>
+  <description>
+    timestamp tasks
+  </description>
+
+  <tstamp>
+    <format property="build.year" pattern="yyyy"/>
+    <format property="build.day" pattern="yyyy-MM-dd"/>
+    <format property="build.timestamp" pattern="yyyy-MM-dd_HH_mm_ss"/>
+  </tstamp>
+</project>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project>
+  <description>
+    common ant tasks
+  </description>
+
+  <property environment="env"/>
+  <property file="${basedir}/build.properties" />
+  <property file="${user.home}/build.properties" />
+
+  <import file="timestamp.xml"/>
+  <import file="hier.xml"/>
+  <import file="${thirdparty.home}/java/include.xml"/>
+  <import file="task.xml"/>
+</project>

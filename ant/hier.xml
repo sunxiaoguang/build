@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project>
+  <description>
+    Hierarchy layout of code
+  </description>
+
+  <property name="src.dir" value="${basedir}/src"/>
+  <property name="java.src.dir" value="${src.dir}/java"/>
+  <property name="bin.dir" value="${basedir}/bin"/>
+  <property name="conf.dir" value="${basedir}/conf"/>
+  <property name="log.dir" value="${basedir}/logs"/>
+  <property name="docs.dir" value="${basedir}/docs"/>
+  <property name="scripts.dir" value="${basedir}/scripts"/>   
+  <property name="install.dir" value="${basedir}/install"/>   
+
+  <property name="build.dir" value="${basedir}/output"/>
+  <property name="build.src.dir" value="${build.dir}/src"/>
+  <property name="build.java.src.dir" value="${build.src.dir}/java"/>
+  <property name="build.lib.dir" value="${build.dir}/lib"/>
+  <property name="build.include.dir" value="${build.dir}/include"/>
+  <property name="build.docs.dir" value="${build.dir}/docs"/>
+  <property name="build.javadoc.dir" value="${build.docs.dir}/api"/>
+  <property name="build.javadoc.dev.dir" value="${build.docs.dir}/dev-api"/>
+
+  <property name="classes.dir" value="${build.dir}/classes"/>
+  <property name="lib.dir" value="${build.dir}/lib"/>
+
+  <property name="dist.dir" value="${build.dir}/${ant.project.name}"/>
+  <property name="dist.lib.dir" value="${dist.dir}/lib"/>
+  <property name="dist.bin.dir" value="${dist.dir}/bin"/>
+  <property name="dist.src.dir" value="${dist.dir}/src"/>
+  <property name="dist.conf.dir" value="${dist.dir}/conf"/>
+  <property name="dist.log.dir" value="${dist.dir}/logs"/>
+  <property name="dist.docs.dir" value="${dist.dir}/docs"/>
+  <property name="dist.scripts.dir" value="${dist.dir}/scripts"/>
+  <property name="dist.install.dir" value="${dist.dir}/install"/>
+
+  <property name="test.dir" value="${basedir}/test"/>
+  <property name="test.src.dir" value="${test.dir}/src"/>
+  <property name="test.java.src.dir" value="${test.src.dir}/java"/>
+  <property name="test.build.dir" value="${build.dir}/test"/>
+  <property name="test.generated.dir" value="${test.build.dir}/src"/>
+  <property name="test.log.dir" value="${test.build.dir}/logs"/>
+  <property name="test.classes.dir" value="${test.build.dir}/classes"/>
+  <property name="test.build.docs.dir" value="${test.build.dir}/docs"/>
+  <property name="test.build.javadoc.dir" value="${test.build.docs.dir}/api"/>
+  <property name="test.build.javadoc.dev.dir" value="${test.build.docs.dir}/dev-api"/>
+
+  <available file="${basedir}/thirdparty/java/include.xml" type="file" property="thirdparty.home" value="${basedir}/thirdparty"/>
+  <property name="thirdparty.home" value="../thirdparty"/>
+</project>

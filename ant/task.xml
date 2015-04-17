@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project>
+  <description>
+    common ant tasks
+  </description>
+
+  <property name="javac.encoding" value="UTF-8"/>
+  <property name="javac.debug" value="true"/>
+  <property name="javac.debuglevel" value="lines, vars, source"/>
+  <property name="javac.version" value="1.8"/>
+  <property name="javac.fork" value="yes"/>
+  <property name="javac.includeAndRuntime" value="false"/>
+
+  <target name="common-clean">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="common-prepare">
+    <mkdir dir="${classes.dir}"/>
+    <mkdir dir="${test.classes.dir}"/>
+    <mkdir dir="${java.src.dir}"/>
+    <mkdir dir="${build.java.src.dir}"/>
+    <mkdir dir="${test.java.src.dir}"/>
+  </target>
+
+  <target name="common-tmpwritable">
+    <tempfile property="touch.temp.file" destDir="${java.io.tmpdir}"/>
+    <touch millis="0" file="${touch.temp.file}"/>
+    <delete file="${touch.temp.file}"/>
+  </target>
+
+  <target name="common-prepare-javadoc">
+    <mkdir dir="${build.javadoc.dir}"/>
+  </target>
+
+  <target name="common-javadoc" depends="common-prepare-javadoc">
+    <javadoc packagenames="com.moca.*" destdir="${build.javadoc.dir}"
+             Windowtitle="Moca - ${ant.project.name}" docencoding="utf-8" charset="utf-8">
+      <sourcepath path="${java.src.dir}"/>
+    </javadoc>
+  </target>
+
+  <target name="common-javadoc-night" depends="common-night,common-javadoc">
+    <jar destfile="${lib.dir}/moca-${ant.project.name}-${build.day}-snapshot.javaodc.jar">
+      <fileset dir="${build.javadoc.dir}">
+        <include name="**/*"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="common-compile" depends="common-prepare" description="Compile src to build dir">
+    <javac srcdir="${java.src.dir}" destdir="${classes.dir}" encoding="${javac.encoding}" 
+      includes="**" debug="${javac.debug}" source="${javac.version}" target="${javac.version}" 
+      fork="${javac.fork}" includeAntRuntime="${javac.includeAntRuntime}">
+      <classpath refid="build.classpath"/>
+    </javac>
+  </target>
+
+  <target name="common-compile-test" depends="common-prepare" description="Compile src to build dir">
+    <javac srcdir="${test.java.src.dir}" destdir="${test.classes.dir}" encoding="${javac.encoding}" 
+      includes="**" debug="${javac.debug}" source="${javac.version}" target="${javac.version}" 
+      fork="${javac.fork}" includeAntRuntime="${javac.includeAntRuntime}">
+      <classpath refid="build.classpath"/>
+    </javac>
+  </target>
+
+  <target name="common-compile-build-src" depends="common-prepare" description="Compile src to build dir">
+    <javac srcdir="${build.java.src.dir}" destdir="${classes.dir}" encoding="${javac.encoding}" 
+      includes="**" debug="${javac.debug}" source="${javac.version}" target="${javac.version}" 
+      fork="${javac.fork}" includeAntRuntime="${javac.includeAntRuntime}">
+      <classpath refid="build.classpath"/>
+    </javac>
+  </target>
+
+  <target name="common-release" depends="common-compile" description="Package up the project as a jar">
+    <jar destfile="${lib.dir}/moca-${ant.project.name}-${tag}.jar">
+      <fileset dir="${classes.dir}">
+        <include name="**/*.class"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="common-package" depends="common-compile" description="Package up the project as a jar">
+    <jar destfile="${lib.dir}/moca-${ant.project.name}-current.jar">
+      <fileset dir="${classes.dir}">
+        <include name="**/*.class"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="common-snapshot" depends="common-package" description="Package up the project as a jar">
+    <move file="${lib.dir}/moca-${ant.project.name}-current.jar" 
+          tofile="${lib.dir}/moca-${ant.project.name}-${build.timestamp}.jar"/>
+  </target>
+
+  <target name="common-night" depends="common-package" description="Package up the project as a jar">
+    <move file="${lib.dir}/moca-${ant.project.name}-current.jar" 
+          tofile="${lib.dir}/moca-${ant.project.name}-${build.day}.jar"/>
+  </target>
+
+  <target name="common-print-env">
+    <tstamp>
+      <format property="time.now" pattern="yyyy-MM-dd HH:mm:ss" />
+    </tstamp>
+    <echo message="Ant:   ${ant.version}" />
+    <echo message="Java:  ${java.vm.name} ${java.version}" />
+    <echo message="Time:  ${time.now}" />
+  </target>
+</project>
