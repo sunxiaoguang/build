@@ -4,7 +4,7 @@ OBJ_SUFFIX = .obj
 EXE_SUFFIX = .exe
 
 DLL_PREFIX = 
-DLL_SUFFIX = dll
+DLL_SUFFIX = .dll
 
 LIB_PREFIX =  
 LIB_SUFFIX = .lib

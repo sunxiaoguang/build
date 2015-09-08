@@ -7,6 +7,14 @@ ifneq ($(CPPSRCS),)
   OBJS += $(addprefix $(OUTDIR)/, $(CPPSRCS:.cc=$(OBJ_SUFFIX)))
 endif 
 
+ifneq ($(OCSRCS),)
+  OBJS += $(addprefix $(OUTDIR)/, $(OCSRCS:.m=$(OBJ_SUFFIX)))
+endif
+
+ifneq ($(OCPPSRCS),)
+  OBJS += $(addprefix $(OUTDIR)/, $(OCPPSRCS:.mm=$(OBJ_SUFFIX)))
+endif
+
 # Platform specific rules
 ifeq ($(PLATFORM), __WINDOWS__)
   DEPEND_FLAGS = $(filter-out -I"", -I"$(subst ;," -I",$(Include)$(INCLUDE))")
@@ -191,6 +199,14 @@ endif
 else
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
 endif
+
+#oc compilation
+$(OUTDIR)/%$(OBJ_SUFFIX): %.m
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
+
+#ocpp compilation
+$(OUTDIR)/%$(OBJ_SUFFIX): %.mm
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(COMP_OUTPUT_FLAG)$@ $<
 
 $(OUTDIR)/%$(OBJ_SUFFIX): %.cpp
 ifeq ($(THE_OS), windows)

@@ -1,5 +1,5 @@
 THE_OS ?= $(shell uname | tr '[:upper:]' '[:lower:]')
-THE_ARCH = $(shell uname -m)
+THE_ARCH ?= $(shell uname -m)
 
 ifeq ($(BUILD_64), 0)
   ifeq ($(THE_ARCH), i686)

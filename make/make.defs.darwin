@@ -2,7 +2,7 @@ PLATFORM = __DARWIN__
 
 include $(BUILD_DIR)/make.defs.unix
 
-DLL_SUFFIX = dylib
+DLL_SUFFIX = .dylib
 
 DLL_LINK_OPTS = -dynamiclib
 DLL_LIBRARY_PATH = DYLD_LIBRARY_PATH

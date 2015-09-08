@@ -10,7 +10,7 @@ else
 include $(BUILD_DIR)/gcc.defs
 endif
 
-CPPFLAGS += $(addprefix $(COMP_INCLUDEPATH_FLAG), $(INCLUDE_DIRS))
+CPPFLAGS += $(addprefix $(COMP_INCLUDEPATH_FLAG), $(INCLUDE_DIRS)) -D__STDC_LIMIT_MACROS
 
 ifeq ($(BUILD_TYPE), debug)
   CPPFLAGS += -D_DEBUG
