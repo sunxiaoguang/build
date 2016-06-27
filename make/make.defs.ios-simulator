@@ -1,0 +1,26 @@
+PLATFORM = __IOS_SIMULATOR__
+
+include $(BUILD_DIR)/make.defs.unix
+
+DLL_SUFFIX = .dylib
+
+DLL_LINK_OPTS = -dynamiclib
+DLL_LIBRARY_PATH = DYLD_LIBRARY_PATH
+
+XCODE_ROOT ?= /Applications/Xcode.app
+PLATFORM_ROOT = $(XCODE_ROOT)/Contents/Developer/Platforms
+SDK_ROOT = /Developer/SDKs
+
+IOS_ARCH_FLAGS = -arch i386 -arch x86_64
+IOS_ROOT_FLAGS = -isysroot $(PLATFORM_ROOT)/iPhoneSimulator.platform/$(SDK_ROOT)/iPhoneSimulator.sdk
+IOS_LD_FLAGS = -Xlinker -arch -Xlinker i386 -Xlinker -arch -Xlinker x86_64
+IOS_VERSION_FLAGS = -miphoneos-version-min=8
+
+CFLAGS += $(IOS_ARCH_FLAGS) $(IOS_ROOT_FLAGS) $(IOS_VERSION_FLAGS)
+CXXFLAGS += -stdlib=libc++ $(IOS_ARCH_FLAGS) $(IOS_ROOT_FLAGS) $(IOS_VERSION_FLAGS)
+LDFLAGS += $(IOS_ROOT_FLAGS) $(IOS_LD_FLAGS) $(IOS_VERSION_FLAGS)
+CXXLDFLAGS += -stdlib=libc++ 
+
+USE_CLANG = 1
+NO_JNI = 1
+THE_ARCH = x86

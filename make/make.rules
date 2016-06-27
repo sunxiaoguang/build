@@ -126,7 +126,7 @@ all: $(MAKE_DIRS) $(PRE_BUILD) \
      $(LEXE_TARGET_PATH) $(LSO_TARGET_PATH) \
      $(POST_BUILD) $(RUNTESTS) $(SUBDIRS)
 
-$(MAKE_DIRS):
+$(sort $(MAKE_DIRS)):
 	mkdir -p $@
 
 .PHONY: $(SUBDIRS) $(PRE_SUBDIRS)
