@@ -12,4 +12,4 @@ CXXFLAGS += -fPIC -Wno-deprecated -fno-stack-protector
 LDFLAGS += -pthread -Wl,-Bsymbolic
 DEPLIBS += m
 
-USE_CLANG = 0
+USE_CLANG ?= 0
